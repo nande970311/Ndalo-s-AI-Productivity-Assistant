@@ -76,22 +76,23 @@ function Index() {
               placeholder="Paste raw notes here — bullet points, half sentences, whatever you scribbled during the meeting."
               buttonLabel="Summarize Notes"
               outputLabel="Clean summary"
-              note="Copy this into your project doc or share it with your team."
+              note="AI helps you find what matters fast."
               rows={10}
             />
           </TabsContent>
 
-          <TabsContent value="rewrite" className="mt-6">
+          <TabsContent value="planner" className="mt-6">
             <AssistantPanel
-              kind="rewrite"
-              title="Message Tone Rewriter"
-              description="Turn a quick or casual message into something polished and professional."
-              inputLabel="Your message"
-              placeholder="e.g. hey can u send me the file asap, need it before the call"
-              buttonLabel="Rewrite Professionally"
-              outputLabel="Polished version"
-              note="Copy this and send it in Slack, Teams, or email."
-              rows={5}
+              kind="planner"
+              title="AI Task Planner"
+              description="List what's on your plate today and get a focused schedule with priorities."
+              inputLabel="My tasks today"
+              placeholder="e.g. Prep slides for client meeting, reply to Sarah's email, review the Q3 budget, 1:1 with manager at 2pm, gym at 6pm"
+              buttonLabel="Schedule"
+              outputLabel="Your day"
+              note="Adjust times to fit your real calendar."
+              rows={6}
+              renderAs="table"
             />
           </TabsContent>
         </Tabs>
@@ -105,7 +106,7 @@ function Index() {
 }
 
 function AssistantPanel(props: {
-  kind: "email" | "summary" | "rewrite";
+  kind: "email" | "summary" | "planner";
   title: string;
   description: string;
   inputLabel: string;
@@ -114,6 +115,7 @@ function AssistantPanel(props: {
   outputLabel: string;
   note: string;
   rows: number;
+  renderAs?: "text" | "table";
 }) {
   const run = useServerFn(runAssistant);
   const [input, setInput] = useState("");
@@ -191,14 +193,91 @@ function AssistantPanel(props: {
               {copied ? "Copied" : "Copy"}
             </Button>
           </div>
-          <div className="rounded-lg border border-border bg-secondary/40 p-4 whitespace-pre-wrap text-sm text-foreground leading-relaxed">
-            {output}
-          </div>
+          {props.renderAs === "table" ? (
+            <ScheduleTable markdown={output} />
+          ) : (
+            <div className="rounded-lg border border-border bg-secondary/40 p-4 whitespace-pre-wrap text-sm text-foreground leading-relaxed">
+              {output}
+            </div>
+          )}
           <p className="text-xs text-muted-foreground mt-2 italic">
             Note: {props.note}
           </p>
         </div>
       )}
+    </div>
+  );
+}
+
+function ScheduleTable({ markdown }: { markdown: string }) {
+  const lines = markdown
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l.startsWith("|") && l.endsWith("|"));
+
+  // Drop the markdown separator row (|---|---|).
+  const rows = lines
+    .filter((l) => !/^\|\s*:?-+/.test(l))
+    .map((l) =>
+      l
+        .slice(1, -1)
+        .split("|")
+        .map((c) => c.trim()),
+    );
+
+  if (rows.length < 2) {
+    return (
+      <div className="rounded-lg border border-border bg-secondary/40 p-4 whitespace-pre-wrap text-sm text-foreground leading-relaxed">
+        {markdown}
+      </div>
+    );
+  }
+
+  const [header, ...body] = rows;
+
+  const priorityStyle = (p: string) => {
+    const v = p.toLowerCase();
+    if (v.includes("high")) return "bg-red-100 text-red-700 border-red-200";
+    if (v.includes("med")) return "bg-amber-100 text-amber-700 border-amber-200";
+    if (v.includes("low")) return "bg-emerald-100 text-emerald-700 border-emerald-200";
+    return "bg-secondary text-foreground border-border";
+  };
+
+  return (
+    <div className="rounded-lg border border-border bg-white overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead className="bg-secondary/60 text-foreground">
+          <tr>
+            {header.map((h, i) => (
+              <th key={i} className="text-left font-semibold px-3 py-2 whitespace-nowrap">
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {body.map((row, i) => (
+            <tr key={i} className="border-t border-border align-top">
+              {row.map((cell, j) => {
+                const isPriority = (header[j] ?? "").toLowerCase().includes("priority");
+                return (
+                  <td key={j} className="px-3 py-2">
+                    {isPriority ? (
+                      <span
+                        className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${priorityStyle(cell)}`}
+                      >
+                        {cell}
+                      </span>
+                    ) : (
+                      cell
+                    )}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
