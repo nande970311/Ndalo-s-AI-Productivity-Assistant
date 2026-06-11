@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Mail, FileText, Wand2, Copy, Check, Loader2, Sparkles } from "lucide-react";
+import { Mail, FileText, CalendarClock, Copy, Check, Loader2, Sparkles } from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -15,9 +15,9 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Nande's AI Workplace Assistant" },
-      { name: "description", content: "Draft professional emails, summarize meeting notes, and rewrite messages with AI." },
+      { name: "description", content: "Draft professional emails, summarize meeting notes, and plan your day with AI." },
       { property: "og:title", content: "Nande's AI Workplace Assistant" },
-      { property: "og:description", content: "Draft professional emails, summarize meeting notes, and rewrite messages with AI." },
+      { property: "og:description", content: "Draft professional emails, summarize meeting notes, and plan your day with AI." },
     ],
   }),
   component: Index,
@@ -48,8 +48,8 @@ function Index() {
             <TabsTrigger value="notes" className="flex flex-col sm:flex-row gap-1 sm:gap-2 py-2.5 text-xs sm:text-sm">
               <FileText className="h-4 w-4" /> Notes
             </TabsTrigger>
-            <TabsTrigger value="rewrite" className="flex flex-col sm:flex-row gap-1 sm:gap-2 py-2.5 text-xs sm:text-sm">
-              <Wand2 className="h-4 w-4" /> Rewrite
+            <TabsTrigger value="planner" className="flex flex-col sm:flex-row gap-1 sm:gap-2 py-2.5 text-xs sm:text-sm">
+              <CalendarClock className="h-4 w-4" /> Planner
             </TabsTrigger>
           </TabsList>
 
